@@ -1,0 +1,1 @@
+SLUG_MAX_LENGTH = 15
