@@ -29,6 +29,7 @@ class Part(BaseNameSlugModel):
 
 class Tag(BaseNameSlugModel):
     """Тэги для вопросов."""
+
     class Meta:
         verbose_name = 'тэг'
         verbose_name_plural = 'Тэги'
@@ -37,12 +38,12 @@ class Tag(BaseNameSlugModel):
 
 class Question(models.Model):
     """Вопросы для квизов."""
-    DIFFICULTY_CHOICES = [
-        (1, 'Легкий'),
-        (2, 'Средний'),
-        (3, 'Сложный'),
-        (4, 'Очень сложный')
-    ]
+
+    class Difficulty(models.IntegerChoices):
+        EASY = 1, 'Легкий'
+        MEDIUM = 2, 'Средний'
+        HARD = 3, 'Сложный'
+        EXTRA_HARD = 4, 'Очень сложный'
 
     text = models.TextField('Текст вопроса')
     answer_requirements = models.TextField(
@@ -58,8 +59,8 @@ class Question(models.Model):
         blank=True)
     difficulty_level = models.IntegerField(
         'Сложность',
-        choices=DIFFICULTY_CHOICES,
-        default=1)
+        choices=Difficulty.choices,
+        default=Difficulty.EASY)
     part = models.ForeignKey(
         Part,
         null=True,
