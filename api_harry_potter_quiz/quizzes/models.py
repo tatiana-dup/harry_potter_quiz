@@ -1,19 +1,25 @@
 from django.db import models
 
-from quizzes.constants import (SLUG_MAX_LENGTH,
-                               TEXT_LENGTH)
+from quizzes.constants import (NAME_MAX_LENGTH,
+                               SLUG_MAX_LENGTH,
+                               LIMIT_STRING_DISPLAYED)
+from quizzes.validators import validate_image_size
 
 
 class BaseNameSlugModel(models.Model):
     """Абстрактная модель, содержащая название и слаг."""
-    name = models.CharField('Название', unique=True)
-    slug = models.SlugField('Слаг', max_length=SLUG_MAX_LENGTH, unique=True)
+    name = models.CharField(
+        'Название', max_length=NAME_MAX_LENGTH, unique=True)
+    slug = models.SlugField(
+        'Слаг', max_length=SLUG_MAX_LENGTH, unique=True,
+        help_text=('Идентификатор страницы для URL; разрешены символы '
+                   'латиницы, цифры, дефис и подчёркивание.'))
 
     class Meta:
         abstract = True
 
     def __str__(self):
-        return self.name[:TEXT_LENGTH]
+        return self.name[:LIMIT_STRING_DISPLAYED]
 
 
 class Part(BaseNameSlugModel):
@@ -53,10 +59,11 @@ class Question(models.Model):
         blank=True)
     image = models.ImageField(
         'Изображение',
-        help_text='Добавьте изображение, если оно нужно для вопроса.',
+        help_text='При необходимости вы можете добавить изображение до 3 МБ.',
         upload_to='quizzes/questions/images',
         null=True,
-        blank=True)
+        blank=True,
+        validators=[validate_image_size])
     difficulty_level = models.IntegerField(
         'Сложность',
         choices=Difficulty.choices,
@@ -80,7 +87,8 @@ class Question(models.Model):
         help_text='В фильмах есть ответ на этот вопрос?')
     is_active = models.BooleanField(
         'Доступность',
-        help_text='Вопрос доступен пользователю?', default=False)
+        help_text='Вопрос доступен пользователю?',
+        default=True)
 
     class Meta:
         verbose_name = 'вопрос'
@@ -88,7 +96,7 @@ class Question(models.Model):
         ordering = ('difficulty_level', 'text')
 
     def __str__(self):
-        return self.text[:TEXT_LENGTH]
+        return self.text[:LIMIT_STRING_DISPLAYED]
 
 
 class Answer(models.Model):
@@ -107,15 +115,31 @@ class Answer(models.Model):
 
     class Meta:
         verbose_name = 'ответ'
-        verbose_name_pliral = 'Ответы'
+        verbose_name_plural = 'Ответы'
         ordering = ('text',)
 
 
 class QuestionCollection(BaseNameSlugModel):
-    """Коллекции вопросов по общей тематике."""
+    """Коллекции вопросов по конкретной тематике."""
     description = models.TextField('Описание')
     questions = models.ManyToManyField(
         Question,
         verbose_name='Вопросы',
         related_name='collections'
     )
+    is_active = models.BooleanField(
+        'Доступность',
+        help_text='Коллекция доступна пользователю?',
+        default=False)
+    created_at = models.DateTimeField(
+        'Дата создания',
+        auto_now_add=True)
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        help_text=('Установить дату, когда коллекция должна быть'
+                   'опубликована.'))
+
+    class Meta:
+        verbose_name = 'коллекция'
+        verbose_name_plural = 'Коллекции'
+        ordering = ('-pub_date',)
