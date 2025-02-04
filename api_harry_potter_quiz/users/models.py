@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from users.constants import ROLE_MAX_LENGTH
+
 
 class AppUser(AbstractUser):
     """Пользователи."""
@@ -12,6 +14,7 @@ class AppUser(AbstractUser):
 
     role = models.CharField(
         'Роль',
+        max_length=ROLE_MAX_LENGTH,
         choices=UserRole.choices,
         default=UserRole.USER)
     avatar = models.ImageField(

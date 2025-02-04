@@ -74,7 +74,8 @@ class Question(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         verbose_name='Часть',
-        related_name='questions')
+        related_name='questions',
+        help_text='Указать, если вопрос относится только к одной части.')
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Тэги',
@@ -117,6 +118,9 @@ class Answer(models.Model):
         verbose_name = 'ответ'
         verbose_name_plural = 'Ответы'
         ordering = ('text',)
+
+    def __str__(self):
+        return self.text[:LIMIT_STRING_DISPLAYED]
 
 
 class QuestionCollection(BaseNameSlugModel):
